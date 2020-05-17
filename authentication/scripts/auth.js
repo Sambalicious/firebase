@@ -10,6 +10,8 @@ auth.onAuthStateChanged(user =>{
         db.collection('guides').onSnapshot(res=>{
             setupGuides(res.docs);
             setupUi(user)
+}, err=>{
+    alert(err.message)
 });
     }else{
        setupGuides([])
@@ -54,17 +56,15 @@ signUpForm.addEventListener('submit', (e)=>{
     ///sign up the user 
 
     auth.createUserWithEmailAndPassword(email, password).then(response =>{
-               
-          }).catch(error=>{
-        alert(error.message)
-    })
-
-    const modal = document.querySelector('#modal-signup');
-    M.Modal.getInstance(modal).close();
-
-    signUpForm.reset();
-
-})
+            return db.collection('users').doc(response.user.uid).set({
+                bio: signUpForm['signup-bio'].value
+            });
+          }).then(()=>{
+            const modal = document.querySelector('#modal-signup');
+            M.Modal.getInstance(modal).close();
+            signUpForm.reset();
+    }); 
+});
 
 //logout 
 
