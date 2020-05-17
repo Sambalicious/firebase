@@ -1,15 +1,35 @@
+///add admin cloud functions
+
+const adminForm = document.querySelector('.admin-actions')
+
+adminForm.addEventListener('submit', (e)=>{
+    e.preventDefault();
+
+    const adminEmail = adminForm['admin-email'].value;
+
+    const addAdminRole = functions.httpsCallable('addAdminRole');
+
+    addAdminRole({email : adminEmail}).then(result =>{
+        console.log(result)
+    })
+
+})
 
 
 
 ///listen for any auth state change
 
 auth.onAuthStateChanged(user =>{
-
+    
     if(user){
-      //getting data from firestore
+
+        user.getIdTokenResult().then(idTokenResult => {
+           user.admin = idTokenResult.claims.admin
+           setupUi(user)
+        })
+      //getting data from firestore realtime database
         db.collection('guides').onSnapshot(res=>{
-            setupGuides(res.docs);
-            setupUi(user)
+            setupGuides(res.docs); 
 }, err=>{
     alert(err.message)
 });
@@ -63,6 +83,9 @@ signUpForm.addEventListener('submit', (e)=>{
             const modal = document.querySelector('#modal-signup');
             M.Modal.getInstance(modal).close();
             signUpForm.reset();
+            signUpForm.querySelector('.error').innerHTML = ''
+    }).catch(error =>{
+        signUpForm.querySelector('.error').innerHTML = error.message
     }); 
 });
 
@@ -89,13 +112,15 @@ loginForm.addEventListener('submit', (e)=>{
     const password = loginForm['login-password'].value
 
     auth.signInWithEmailAndPassword(email, password).then(res =>{
-       
+       //close the modal and reset the form
+       const modal = document.querySelector('#modal-login');
+       M.Modal.getInstance(modal).close();
+   
+       loginForm.reset();
+       loginForm.querySelector('.error').innerHTML = ''
+
     }).catch(error =>{
-        alert(error.message)
-    })
-
-    const modal = document.querySelector('#modal-login');
-    M.Modal.getInstance(modal).close();
-
-    loginForm.reset();
+        loginForm.querySelector('.error').innerHTML = error.message
+        
+    }) 
 })
