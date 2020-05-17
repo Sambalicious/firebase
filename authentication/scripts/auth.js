@@ -1,18 +1,44 @@
-//getting data from firestore
-db.collection('guides').get().then(res=>{
-    setupGuides(res.docs);
-});
+
 
 
 ///listen for any auth state change
 
 auth.onAuthStateChanged(user =>{
+
     if(user){
-       console.log('you are logged in', user)
+      //getting data from firestore
+        db.collection('guides').onSnapshot(res=>{
+            setupGuides(res.docs);
+            setupUi(user)
+});
     }else{
-        console.log('you are logged out')
+       setupGuides([])
+       setupUi()
     }
     })
+
+    ///creating a new guides
+
+    const createForm = document.querySelector('#create-form')
+
+
+    createForm.addEventListener('submit',(e)=>{
+        e.preventDefault();
+        const title = createForm['title'].value;
+        const content = createForm['content'].value;
+
+        db.collection('guides').add({
+            title,content
+        }).then(()=>{
+
+            const modal = document.querySelector('#modal-create');
+            M.Modal.getInstance(modal).close();
+             createForm.reset();
+        }).catch(err => {
+            console.log(error.message);
+        });
+
+        })
 
 
 ////sign up
